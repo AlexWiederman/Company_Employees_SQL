@@ -12,4 +12,6 @@ VALUES ("Software Engineer", 90000),
 
 INSERT INTO employee (first_name, last_name,manager_id)
 VALUES ("Bob", "Peet", 90),
+        ("Kim", "Boot", 42),
+        ("Jim", "Root", 91);
         
