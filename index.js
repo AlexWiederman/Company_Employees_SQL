@@ -48,10 +48,30 @@ function mainMenu() {
 })
 }
 
-// viewAllEmployees() {
+function viewAllEmployees() {
     const sql = `SELECT * FROM employee`;
   db.query(sql, function (err, rows) {
     console.table(rows);
+    mainMenu()
   });
+};
 
-// };
+function viewAllRoles() {
+    const sql = `SELECT role.id,title,salary,department.name as department FROM role JOIN department ON department.id = role.department_id;`;
+  db.query(sql, function (err, rows) {
+    console.table(rows);
+    mainMenu()
+  });
+}
+
+function allDepartments() {
+    const sql = `SELECT * FROM department`;
+  db.query(sql, function (err, rows) {
+    console.table(rows);
+    mainMenu()
+  });
+}
+
+console.log('--------Employee Manager--------')
+// Starting program with displaying the main menu
+mainMenu()
