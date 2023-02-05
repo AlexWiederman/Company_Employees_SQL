@@ -122,8 +122,8 @@ function addEmployees() {
 
 function updateEmployeeRole() {
     db.query(`SELECT id,CONCAT(first_name," ",last_name) AS name FROM employee`, function (err, names) {
-        db.query(`SELECT id,CONCAT(first_name," ",last_name) AS name FROM employee`, function (err, roles) {
-            console.log(rows)
+        db.query(`SELECT id,title AS name FROM role`, function (err, roles) {
+           
 
             inquirer
                 .prompt([
@@ -131,13 +131,13 @@ function updateEmployeeRole() {
                         type: 'list',
                         name: 'employee',
                         message: 'Select Employee to update their role',
-                        list: names,
+                        choices: names,
                     },
                     {
                         type: 'list',
                         name: 'role',
                         message: 'Which role do you want to assign the selected employee',
-                        list: roles,
+                        choices: roles,
                     },
                 ])
                 .then((data) => {
