@@ -2,7 +2,7 @@
 const mysql = require('mysql2');
 const cTable = require('console.table');
 const inquirer = require('inquirer');
-var deptID 
+var deptID
 
 // Connect to database
 const db = mysql.createConnection(
@@ -50,7 +50,7 @@ function mainMenu() {
 }
 
 function viewAllEmployees() {
-    const sql = `SELECT * FROM employee`;
+    const sql = `SELECT employee.id,first_name,last_name,manager_id,role.title FROM employee JOIN role ON role.id = employee.role_id`;
     db.query(sql, function (err, rows) {
         console.table(rows);
         mainMenu()
@@ -59,53 +59,154 @@ function viewAllEmployees() {
 
 function addEmployees() {
 
+    db.query(`SELECT id,title AS name FROM role`, function (err, roles) {
+
+        db.query(`SELECT id,CONCAT(first_name," ",last_name) AS name FROM employee`, function (err, employees) {
+
+            inquirer
+                .prompt([
+                    {
+                        type: 'input',
+                        name: 'first',
+                        message: 'What is the employees first name?',
+                    },
+                    {
+                        type: 'input',
+                        name: 'last',
+                        message: 'What is the employees last name?',
+                    },
+                    {
+                        type: 'list',
+                        name: 'role',
+                        message: 'What is the employees role?',
+                        choices: roles,
+                    },
+                    {
+                        type: 'list',
+                        name: 'manager',
+                        message: 'Who is the employees manager?',
+                        choices: employees,
+                    },
+
+                ])
+                .then((data) => {
+                    var roleID
+                    var managerID
+                    console.log(data.role)
+                    // Going through all of the current roles to see which one is selected
+                    for (let i = 0; i < roles.length; i++) {
+                        if (roles[i].name == data.role) {
+                            roleID = i + 1; //Adding one because this is a 0 index but the id starts at 1
+                            console.log('Role added correctly')
+                        }
+                    }
+                    // Going through all of the current employees to see which one is selected for manager
+                    for (let i = 0; i < employees.length; i++) {
+                        if (employees[i].name == data.manager) {
+                            managerID = i + 1; //Adding one because this is a 0 index but the id starts at 1
+                            console.log('Manager added correctly')
+                        }
+                    }
+                    const sql = `INSERT INTO employee (first_name,last_name,manager_id,role_id) VALUES ("${data.first}","${data.last}",${managerID},${roleID});`
+                    db.query(sql, function (err, rows) {
+
+                        console.log(`${data.first} ${data.last} is Added`)
+                        mainMenu(); //Going back to the main menu
+                    });
+                })
+
+        })
+    })
+
 }
 
 function updateEmployeeRole() {
+    db.query(`SELECT id,CONCAT(first_name," ",last_name) AS name FROM employee`, function (err, names) {
+        db.query(`SELECT id,CONCAT(first_name," ",last_name) AS name FROM employee`, function (err, roles) {
+            console.log(rows)
+
+            inquirer
+                .prompt([
+                    {
+                        type: 'list',
+                        name: 'employee',
+                        message: 'Select Employee to update their role',
+                        list: names,
+                    },
+                    {
+                        type: 'list',
+                        name: 'role',
+                        message: 'Which role do you want to assign the selected employee',
+                        list: roles,
+                    },
+                ])
+                .then((data) => {
+
+                    // Going through all of the current employees to see which one is selected for manager
+                    for (let i = 0; i < names.length; i++) {
+                        if (names[i].name == data.employee) {
+                            var employeeID = i + 1; //Adding one because this is a 0 index but the id starts at 1
+                            // console.log('')
+                        }
+                    }
+                    // Going through all of the current roles to see which one is selected
+                    for (let i = 0; i < roles.length; i++) {
+                        if (roles[i].name == data.role) {
+                            var roleID = i + 1; //Adding one because this is a 0 index but the id starts at 1
+                            // console.log('Role added correctly')
+                        }
+                    }
+                    const sql = `UPDATE employee SET role_id="${roleID}" WHERE id ="${employeeID}";`
+                    db.query(sql, function (err, rows) {
+                        console.log(`${data.employee} Role updated`)
+                        mainMenu()
+                    });
+
+                })
+        });
+    });
 
 }
 
 function addRole() {
-    
+
     db.query(`SELECT * FROM department`, function (err, rows) {
-        
-   
-    inquirer
-        .prompt([
-            {
-                type: 'input',
-                name: 'name',
-                message: 'Enter the name of the new role.',
-            },
-            {
-                type: 'input',
-                name: 'salary',
-                message: 'Enter the salary of the new role.',
-            },
-            {
-                type: 'list',
-                name: 'department',
-                message: 'Which department does the new role belong to?',
-                choices: rows,
-            },
-        ])
-        .then((data) => {
-            console.log(data.department)
-            console.log(rows.name) //Need to fix this by targeting all of the names inside of the rows object to properlly compare against it
-            for (let i=0; i< rows.length; i++) {
-                if (rows.name(i) == data.department) {
-                    deptID = i;
-                    console.log('ID added correctly')
+        console.log(rows)
+
+        inquirer
+            .prompt([
+                {
+                    type: 'input',
+                    name: 'name',
+                    message: 'Enter the name of the new role.',
+                },
+                {
+                    type: 'input',
+                    name: 'salary',
+                    message: 'Enter the salary of the new role.',
+                },
+                {
+                    type: 'list',
+                    name: 'department',
+                    message: 'Which department does the new role belong to?',
+                    choices: rows,
+                },
+            ])
+            .then((data) => {
+
+                // Going through all of the current departments to see which one is selected
+                for (let i = 0; i < rows.length; i++) {
+                    if (rows[i].name == data.department) {
+                        deptID = i + 1; //Adding one because this is a 0 index but the id starts at 1
+                    }
                 }
-            }
-            const sql = `INSERT INTO role (title, salary,department_id) VALUES ("${data.name}",${data.salary},${deptID});`
-            db.query(sql, function (err, rows) {
-                console.log(`"${data.name}",${data.salary},${deptID}`)
-                console.log(`${data.name} Role Added`)
-                mainMenu()
-            });
-            
-        })
+                const sql = `INSERT INTO role (title, salary,department_id) VALUES ("${data.name}",${data.salary},${deptID});`
+                db.query(sql, function (err, rows) {
+                    console.log(`${data.name} Role Added`)
+                    mainMenu()
+                });
+
+            })
     });
 }
 
