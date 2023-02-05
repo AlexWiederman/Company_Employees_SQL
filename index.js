@@ -171,7 +171,7 @@ function updateEmployeeRole() {
 function addRole() {
 
     db.query(`SELECT * FROM department`, function (err, rows) {
-        console.log(rows)
+        
 
         inquirer
             .prompt([
